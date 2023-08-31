@@ -64,6 +64,33 @@ func New(host string, auth smtp.Auth) *MailYak {
 	}
 }
 
+// NewLegacy returns an instance of MailYak using host as the SMTP server, and
+// authenticating with auth if non-nil.
+//
+// host must include the port number (i.e. "smtp.itsallbroken.com:25")
+//
+//	mail := mailyak.New("smtp.itsallbroken.com:25", smtp.PlainAuth(
+//	    "",
+//	    "username",
+//	    "password",
+//	    "smtp.itsallbroken.com",
+//	))
+//
+// MailYak instances created with NewLegacy will not switch to using TLS after
+// connecting, even if the remote host supports the STARTTLS command. For an explicit TLS
+// connection, or to provide a custom tls.Config, use NewWithTLS() instead.
+func NewLegacy(host string, auth smtp.Auth) *MailYak {
+	return &MailYak{
+		headers:        map[string][]string{},
+		host:           host,
+		auth:           auth,
+		sender:         newSenderLegacy(host),
+		trimRegex:      regexp.MustCompile("\r?\n"),
+		writeBccHeader: false,
+		date:           time.Now().Format(mailDateFormat),
+	}
+}
+
 // NewWithTLS returns an instance of MailYak using host as the SMTP server over
 // an explicit TLS connection, and authenticating with auth if non-nil.
 //
